@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Neural Network Dashboard - YOLOv8 Dragon Fruit</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #222222;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300' viewBox='0 0 300 300'%3E%3Cg stroke='rgba(255, 255, 255, 0.07)' stroke-width='1.2' fill='none' stroke-linecap='round' stroke-linejoin='round'%3E%3C!-- Daun Monstera Besar --%3E%3Cpath d='M70 60 C40 80 40 130 80 140 C73 122 60 110 67 98 C74 98 86 110 92 104 C80 86 74 69 98 75 C92 63 98 52 110 58 C104 35 127 23 139 46 M100 85 C115 100 130 110 145 120' /%3E%3Cpath d='M220 210 C190 230 190 280 230 290 C223 272 210 260 217 248 C224 248 236 260 242 254 C230 236 224 219 248 225 C242 213 248 202 260 208 C254 185 277 173 289 196' /%3E%3C!-- Buah Naga Utuh (Sketsa Garis) --%3E%3Cg transform='translate(20, 160)'%3E%3Cpath d='M40 20 C15 45 15 80 40 100 C65 80 65 45 40 20 Z' /%3E%3Cpath d='M40 20 C35 30 35 40 40 45 C45 40 45 30 40 20' /%3E%3Cpath d='M22 45 C15 55 20 65 30 60' /%3E%3Cpath d='M58 45 C65 55 60 65 50 60' /%3E%3Cpath d='M26 70 C20 80 30 90 38 82' /%3E%3Cpath d='M54 70 C60 80 50 90 42 82' /%3E%3C/g%3E%3Cg transform='translate(180, 40)'%3E%3Cpath d='M40 20 C15 45 15 80 40 100 C65 80 65 45 40 20 Z' /%3E%3Cpath d='M40 20 C35 30 35 40 40 45 C45 40 45 30 40 20' /%3E%3Cpath d='M22 45 C15 55 20 65 30 60' /%3E%3Cpath d='M58 45 C65 55 60 65 50 60' /%3E%3C/g%3E%3C!-- Potongan Belahan Buah Naga (Garis & Biji Sederhana) --%3E%3Cg transform='translate(180, 150)'%3E%3Ccircle cx='45' cy='50' r='35' /%3E%3Ccircle cx='45' cy='50' r='29' /%3E%3Ccircle cx='35' cy='42' r='0.6' fill='rgba(255,255,255,0.4)' stroke='none'/%3E%3Ccircle cx='55' cy='46' r='0.6' fill='rgba(255,255,255,0.4)' stroke='none'/%3E%3Ccircle cx='42' cy='58' r='0.6' fill='rgba(255,255,255,0.4)' stroke='none'/%3E%3Ccircle cx='50' cy='64' r='0.6' fill='rgba(255,255,255,0.4)' stroke='none'/%3E%3Cpath d='M10 50 L0 45 M80 50 L90 55 M45 15 L40 5 M45 85 L50 95' /%3E%3C/g%3E%3C!-- Potongan Seperempat Lengkung --%3E%3Cg transform='translate(50, 20)'%3E%3Cpath d='M15 15 A 45 45 0 0 0 75 45 Z' /%3E%3Cpath d='M20 22 A 38 38 0 0 0 68 43 Z' /%3E%3Ccircle cx='40' cy='30' r='0.6' fill='rgba(255,255,255,0.4)' stroke='none'/%3E%3Ccircle cx='50' cy='36' r='0.6' fill='rgba(255,255,255,0.4)' stroke='none'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+            background-repeat: repeat;
+        }
+        
+        .cyber-layer-overlay {
+            background: rgba(15, 15, 15, 0.45);
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .premium-panel {
+            background: rgba(26, 26, 26, 0.88);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-top: 1px solid rgba(236, 72, 153, 0.35); 
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.75);
+        }
+
+        .scanline {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 4px;
+            background: linear-gradient(to bottom, transparent, #ec4899, transparent);
+            opacity: 0.4;
+            animation: scan 4s linear infinite;
+        }
+        @keyframes scan {
+            0% { top: 0%; }
+            50% { top: 100%; }
+            100% { top: 0%; }
+        }
+    </style>
+</head>
+<body class="text-slate-200 antialiased min-h-screen flex flex-col justify-between relative overflow-x-hidden font-sans">
+
+    <div class="cyber-layer-overlay"></div>
+
+    <div class="relative z-10 flex flex-col justify-between flex-grow w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 gap-6">
+        
+        <header class="w-full premium-panel rounded-2xl p-6 relative overflow-hidden">
+            <div class="flex flex-col md:flex-row items-center justify-between gap-6 relative z-10">
+                <div>
+                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-pink-500/10 border border-pink-500/20 text-pink-400 text-xs font-mono font-bold tracking-wider mb-2">
+                        <span class="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-ping"></span> SYSTEM INTELLIGENCE ACTIVE
+                    </div>
+                    <h1 class="text-xl md:text-2xl lg:text-3xl font-extrabold tracking-tight text-white leading-tight">
+                        {{ judul_sistem|default:"DETEKSI REAL-TIME KEMATANGAN BUAH NAGA" }}
+                    </h1>
+                    <p class="text-xs font-mono text-slate-400 mt-1 uppercase tracking-widest">
+                        <i class="fa-solid fa-microchip text-pink-500 mr-1"></i> Computer Vision Diagnostic Bench
+                    </p>
+                </div>
+                
+                <div class="flex items-center gap-2 bg-slate-950/80 p-1.5 rounded-xl border border-slate-800 w-full md:w-auto">
+                    <button onclick="switchTab('dashboard')" id="btn-tab-dashboard" class="flex-1 md:flex-initial flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all bg-gradient-to-r from-pink-500 to-rose-600 text-white shadow-md">
+                        <i class="fa-solid fa-gauge-high"></i> Dasbor Utama
+                    </button>
+                    <button onclick="switchTab('history')" id="btn-tab-history" class="flex-1 md:flex-initial flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all text-slate-400 hover:text-slate-200">
+                        <i class="fa-solid fa-clock-rotate-left"></i> Riwayat Diagnostik
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <main id="tab-dashboard" class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch w-full transition-all duration-300">
+            
+            <div class="lg:col-span-6 flex flex-col">
+                <div class="premium-panel p-6 rounded-2xl flex flex-col justify-between flex-grow h-full">
+                    <div>
+                        <div class="flex items-center justify-between mb-5 pb-3 border-b border-slate-800/80">
+                            <h2 class="font-bold text-white tracking-wide flex items-center gap-2 text-sm md:text-base">
+                                <i class="fa-solid fa-right-to-bracket text-pink-500"></i> Gerbang Input Citra
+                            </h2>
+                            <span class="text-[10px] font-mono bg-slate-950 px-2 py-0.5 rounded border border-slate-800 text-slate-400">NODE_IN</span>
+                        </div>
+
+                        <div class="p-1 bg-slate-950 rounded-xl flex items-center gap-1 border border-slate-800/80 mb-6">
+                            <a href="?" class="flex-1 py-2 px-3 text-center rounded-lg font-bold text-xs transition-all flex items-center justify-center gap-2 {% if not pake_kamera %} bg-gradient-to-r from-pink-500 to-rose-600 text-white shadow-md {% else %} text-slate-400 hover:text-slate-200 {% endif %}">
+                                <i class="fa-solid fa-file-image"></i> Berkas Media Gambar
+                            </a>
+                            <a href="?mode=kamera" class="flex-1 py-2 px-3 text-center rounded-lg font-bold text-xs transition-all flex items-center justify-center gap-2 {% if pake_kamera %} bg-gradient-to-r from-pink-500 to-rose-600 text-white shadow-md {% else %} text-slate-400 hover:text-slate-200 {% endif %}">
+                                <i class="fa-solid fa-video text-xs text-emerald-400"></i> Live Web Camera
+                            </a>
+                        </div>
+
+                        {% if not pake_kamera %}
+                        <form method="POST" enctype="multipart/form-data" class="space-y-5">
+                            {% csrf_token %}
+                            <div class="bg-slate-950/80 border-2 border-dashed border-slate-800 hover:border-pink-500/30 rounded-xl p-8 text-center relative group transition-all duration-300">
+                                <input type="file" name="gambar_buah" id="gambar_buah" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20" onchange="previewImage(event)" required>
+                                <div class="space-y-3">
+                                    <div class="w-12 h-12 bg-slate-900/80 rounded-xl flex items-center justify-center mx-auto text-slate-400 group-hover:text-pink-400 border border-slate-800 transition-all">
+                                        <i class="fa-solid fa-folder-open text-base"></i>
+                                    </div>
+                                    <p class="text-xs text-slate-300">
+                                        <span class="text-pink-500 font-bold underline">Pilih dokumen citra</span> atau tarik berkas ke sini
+                                    </p>
+                                    <p class="text-[10px] text-slate-500 font-mono">Format yang didukung: JPG, JPEG, PNG</p>
+                                </div>
+                            </div>
+
+                            <div id="wrapper-preview" class="hidden bg-slate-950 rounded-xl p-3 border border-slate-900">
+                                <span class="text-[10px] font-mono text-slate-500 block mb-2"><i class="fa-solid fa-magnifying-glass mr-1"></i> Matriks Pra-Analisis:</span>
+                                <div class="relative rounded-lg overflow-hidden border border-slate-800 bg-black/40 p-1">
+                                    <img id="image-preview" class="max-h-48 mx-auto rounded object-contain" src="#" alt="Pratinjau">
+                                </div>
+                            </div>
+
+                            <button type="submit" class="w-full bg-gradient-to-r from-pink-500 to-rose-600 hover:from-pink-600 hover:to-rose-700 text-white font-bold py-3.5 px-4 rounded-xl tracking-wider text-xs uppercase shadow-lg shadow-pink-500/10 flex items-center justify-center gap-2 transition-all cursor-pointer">
+                                <i class="fa-solid fa-wand-magic-sparkles text-xs"></i> Mulai Analisis Deteksi
+                            </button>
+                        </form>
+                        {% else %}
+                        <div class="space-y-4">
+                            <div class="rounded-xl overflow-hidden bg-slate-950 relative aspect-video p-1 border border-slate-900">
+                                <img src="/video_feed" class="w-full h-full object-cover rounded-lg" alt="Kamera Live">
+                                <div class="scanline"></div>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="lg:col-span-6 flex flex-col">
+                <div class="premium-panel p-6 rounded-2xl flex flex-col justify-between flex-grow h-full">
+                    <div>
+                        <div class="flex items-center justify-between mb-5 pb-3 border-b border-slate-800/80">
+                            <h2 class="font-bold text-white tracking-wide flex items-center gap-2 text-sm md:text-base">
+                                <i class="fa-solid fa-chart-line text-cyan-400"></i> Hasil Visual Inferensi
+                            </h2>
+                            <span class="text-[10px] font-mono bg-slate-950 px-2 py-0.5 rounded border border-slate-800 text-slate-400">NODE_OUT</span>
+                        </div>
+
+                        <div class="bg-slate-950 rounded-xl p-3 flex items-center justify-center min-h-[220px] relative overflow-hidden border border-slate-900">
+                            {% if not pake_kamera and url_gambar %}
+                                <div class="relative w-full h-full p-0.5">
+                                    <img src="{{ url_gambar }}" class="max-h-60 mx-auto rounded-lg object-contain shadow-2xl" alt="Hasil Klasifikasi">
+                                    <div class="scanline"></div>
+                                </div>
+                            {% elif pake_kamera %}
+                                <div class="text-center p-6 space-y-2">
+                                    <div class="w-10 h-10 bg-emerald-500/10 rounded-xl flex items-center justify-center mx-auto text-emerald-400 border border-emerald-500/20 animate-pulse">
+                                        <i class="fa-solid fa-satellite-dish text-sm"></i>
+                                    </div>
+                                    <p class="text-[11px] font-mono text-emerald-400 uppercase tracking-widest">Pipeline Video Aktif</p>
+                                </div>
+                           {% else %}
+                                <div class="text-center p-6 text-slate-600 space-y-2">
+                                    <i class="fa-solid fa-terminal text-xl block"></i>
+                                    <p class="text-xs font-mono">Menunggu transmisi berkas masukan selesai...</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="mt-5 space-y-4">
+                        <div class="bg-slate-950/90 border border-slate-900 rounded-xl p-4">
+                            <span class="text-[9px] font-mono font-bold text-slate-500 uppercase tracking-widest block mb-1">Status Kematangan:</span>
+                            <div id="status-badge" class="text-base font-bold uppercase tracking-wide flex items-center gap-2 transition-all duration-300">
+                                {% if not pake_kamera and status %}
+                                    <span id="txt-status">{{ status }}</span>
+                                {% else %}
+                                    <span id="txt-status" class="text-slate-500 font-medium text-xs font-mono flex items-center gap-2"><i class="fa-solid fa-circle-notch fa-spin text-pink-500"></i> IDLE_WAITING_STREAM</span>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="mt-3 pt-3 border-t border-slate-900">
+                                <span class="text-[9px] font-mono font-bold text-slate-500 uppercase tracking-widest block mb-1">Uraian Teknis Objek:</span>
+                                <p id="txt-deskripsi" class="text-xs text-slate-400 font-medium leading-relaxed text-justify">
+                                    {% if not pake_kamera and deskripsi %}{{ deskripsi }}{% else %}Deskripsi detail karakteristik fisik buah naga akan dipetakan langsung oleh model kecerdasan buatan.{% endif %}
+                                </p>
+                            </div>
+                        </div>
+                        
+{% if not pake_kamera and status %}
+<div class="space-y-2">
+<form method="POST" action="{% url 'simpan_riwayat' %}">
+        {% csrf_token %}
+        <input type="hidden" name="status" value="{{ status }}">
+        <input type="hidden" name="deskripsi" value="{{ deskripsi }}">
+        <input type="hidden" name="url_gambar" value="{{ url_gambar }}">
+
+        <button type="submit" class="w-full bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-bold py-2.5 px-4 rounded-xl tracking-wider text-xs uppercase shadow-md flex items-center justify-center gap-2 transition-all cursor-pointer">
+            <i class="fa-solid fa-floppy-disk text-[11px]"></i> Simpan Hasil Diagnostik
+        </button>
+    </form>
+
+    <a href="?" class="w-full bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-slate-200 font-bold py-2 px-4 rounded-xl text-xs text-center block border border-slate-800 transition-all">
+        <i class="fa-solid fa-arrow-rotate-left mr-1.5 text-[10px]"></i> Reset Pemindaian
+    </a>
+</div>
+
+{% endif %}
+                    </div>
+                </div>
+            </div>
+        </main>
+
+
+        <main id="tab-history" class="hidden w-full premium-panel rounded-2xl p-6 transition-all duration-300">
+            <div class="flex items-center justify-between mb-6 pb-3 border-b border-slate-800/80">
+                <h2 class="font-bold text-white tracking-wide flex items-center gap-2 text-sm md:text-base">
+                    <i class="fa-solid fa-database text-pink-500"></i> Bank Data Log Analisis Riwayat
+                </h2>
+                <span class="text-[10px] font-mono bg-slate-950 px-2 py-0.5 rounded border border-slate-800 text-slate-400">DATABASE_LOG</span>
+            </div>
+
+            <div class="overflow-x-auto rounded-xl border border-slate-900 bg-slate-950/40">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-slate-950 text-slate-400 uppercase text-[10px] font-mono border-b border-slate-800 tracking-wider">
+                            <th class="py-4 px-4 text-center w-12">ID</th>
+                            <th class="py-4 px-6 w-32">Visual Buah</th>
+                            <th class="py-4 px-6">Klasifikasi Status</th>
+                            <th class="py-4 px-6 hidden md:table-cell">Deskripsi Analisis Teknis</th>
+                            <th class="py-4 px-6 text-right w-40">Timestamp</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-900/60 text-xs text-slate-300">
+                        {% for item in riwayat %}
+                        <tr class="hover:bg-slate-900/40 transition-colors">
+                            <td class="py-4 px-4 font-mono text-center text-slate-500">#{{ item.id }}</td>
+                            <td class="py-4 px-6">
+                                <div class="w-16 h-12 rounded bg-black/30 border border-slate-800 overflow-hidden relative group">
+                                    <img src="{{ item.image_path }}" class="w-full h-full object-cover" alt="Log">
+                                </div>
+                            </td>
+                            <td class="py-4 px-6">
+                                <span class="px-2.5 py-1 rounded-md font-bold text-[11px] uppercase tracking-wide
+                                    {% if 'Matang Sempurna' in item.status or 'Matang' in item.status and not 'Setengah' in item.status %} bg-pink-500/10 text-pink-400 border border-pink-500/20
+                                    {% elif 'Setengah' in item.status %} bg-amber-500/10 text-amber-400 border border-amber-500/20
+                                    {% elif 'Mentah' in item.status %} bg-emerald-500/10 text-emerald-400 border border-emerald-500/20
+                                    {% else %} bg-rose-500/10 text-rose-400 border border-rose-500/20 {% endif %}">
+                                    {{ item.status }}
+                                </span>
+                            </td>
+                            <td class="py-4 px-6 text-slate-400 hidden md:table-cell max-w-xs truncate">{{ item.deskripsi }}</td>
+                            <td class="py-4 px-6 text-right font-mono text-slate-500 text-[11px]">{{ item.waktu_simpan|date:"d M Y - H:i" }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="py-12 text-center text-slate-500 font-mono">
+                                <i class="fa-solid fa-folder-open text-2xl block mb-2 text-slate-700"></i>
+                                Belum ada riwayat pemindaian statis yang tersimpan ke database.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </main>
+
+
+        <section class="w-full premium-panel rounded-2xl p-6">
+            <div class="flex items-center gap-2 mb-6 pb-3 border-b border-slate-800/80">
+                <i class="fa-solid fa-book-open text-pink-500"></i>
+                <h2 class="font-bold text-white tracking-wide text-sm md:text-base">Panduan Karakteristik Kematangan Buah Naga</h2>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="bg-slate-950/60 rounded-xl p-4 border border-slate-800 flex flex-col items-center text-center gap-4">
+                    <div class="w-24 h-24 filter drop-shadow-[0_0_8px_rgba(16,185,129,0.15)]">
+                        <svg viewBox="0 0 100 100" class="w-full h-full">
+                            <path d="M50 10 C25 35 20 75 50 95 C80 75 75 35 50 10 Z" fill="#1b4332" stroke="#40916c" stroke-width="1.5"/>
+                            <path d="M50 15 L45 30 L55 30 Z" fill="#52b788"/>
+                            <path d="M35 35 L20 50 L40 45 Z" fill="#74c69d"/>
+                            <path d="M65 35 L80 50 L60 45 Z" fill="#74c69d"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <span class="px-2.5 py-0.5 rounded text-[10px] font-bold font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">FASE: MENTAH</span>
+                        <h3 class="text-sm font-bold text-white mt-2">Kandungan Klorofil Tinggi</h3>
+                        <p class="text-xs text-slate-400 mt-1 leading-relaxed">Seluruh kulit luar dan sisik buah berwarna hijau pekat. Tekstur daging buah sangat keras.</p>
+                    </div>
+                </div>
+
+                <div class="bg-slate-950/60 rounded-xl p-4 border border-slate-800 flex flex-col items-center text-center gap-4">
+                    <div class="w-24 h-24 filter drop-shadow-[0_0_8px_rgba(245,158,11,0.15)]">
+                        <svg viewBox="0 0 100 100" class="w-full h-full">
+                            <defs>
+                                <linearGradient id="halfGrad" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="0%" stop-color="#2d6a4f"/>
+                                    <stop offset="70%" stop-color="#a01a40"/>
+                                </linearGradient>
+                            </defs>
+                            <path d="M50 10 C25 35 20 75 50 95 C80 75 75 35 50 10 Z" fill="url(#halfGrad)" stroke="#ff4d6d" stroke-width="1.5"/>
+                            <path d="M50 15 L45 30 L55 30 Z" fill="#52b788"/>
+                            <path d="M35 35 L20 50 L40 45 Z" fill="#74c69d"/>
+                            <path d="M65 35 L80 50 L60 45 Z" fill="#ff4d6d"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <span class="px-2.5 py-0.5 rounded text-[10px] font-bold font-mono bg-amber-500/10 text-amber-400 border border-amber-500/20">FASE: SETENGAH MATANG</span>
+                        <h3 class="text-sm font-bold text-white mt-2">Transisi Rona Pigmen</h3>
+                        <p class="text-xs text-slate-400 mt-1 leading-relaxed">Warna kemerahan menyebar sekitar 50% hingga 70%, ujung-ujung sisik masih hijau.</p>
+                    </div>
+                </div>
+
+                <div class="bg-slate-950/60 rounded-xl p-4 border border-slate-800 flex flex-col items-center text-center gap-4">
+                    <div class="w-24 h-24 filter drop-shadow-[0_0_8px_rgba(236,72,153,0.2)]">
+                        <svg viewBox="0 0 100 100" class="w-full h-full">
+                            <path d="M50 10 C25 35 20 75 50 95 C80 75 75 35 50 10 Z" fill="#900048" stroke="#ff007f" stroke-width="1.5"/>
+                            <path d="M50 15 L45 30 L55 30 Z" fill="#70e000"/>
+                            <path d="M35 35 L20 50 L40 45 Z" fill="#70e000"/>
+                            <path d="M65 35 L80 50 L60 45 Z" fill="#ff4d6d"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <span class="px-2.5 py-0.5 rounded text-[10px] font-bold font-mono bg-pink-500/10 text-pink-400 border border-pink-500/20">FASE: MATANG SEMPURNA</span>
+                        <h3 class="text-sm font-bold text-white mt-2">Kadar Gula Maksimal</h3>
+                        <p class="text-xs text-slate-400 mt-1 leading-relaxed">Kulit luar berwarna merah fuchsia penuh cerah, menandakan buah siap dikonsumsi.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <footer class="text-center py-4 border-t border-slate-950 text-[10px] font-mono text-slate-600 tracking-widest uppercase flex flex-col sm:flex-row items-center justify-between gap-2">
+            <p>Sistem Deteksi Komputasi Buah Naga &copy; 2026</p>
+            <p>Django Core &bull; Ultralytics YOLOv8</p>
+        </footer>
+    </div>
+
+    <script>
+        // FUNGSI GANTI SEGMEN ROUTER TAB (DASBOR / RIWAYAT)
+        function switchTab(tabId) {
+            const dashboardSection = document.getElementById('tab-dashboard');
+            const historySection = document.getElementById('tab-history');
+            const btnDashboard = document.getElementById('btn-tab-dashboard');
+            const btnHistory = document.getElementById('btn-tab-history');
+
+            if (tabId === 'dashboard') {
+                dashboardSection.classList.remove('hidden');
+                historySection.classList.add('hidden');
+                
+                // Atur style tombol aktif
+                btnDashboard.className = "flex-1 md:flex-initial flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all bg-gradient-to-r from-pink-500 to-rose-600 text-white shadow-md";
+                btnHistory.className = "flex-1 md:flex-initial flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all text-slate-400 hover:text-slate-200";
+            } else if (tabId === 'history') {
+                dashboardSection.classList.add('hidden');
+                historySection.classList.remove('hidden');
+                
+                // Atur style tombol aktif
+                btnHistory.className = "flex-1 md:flex-initial flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all bg-gradient-to-r from-pink-500 to-rose-600 text-white shadow-md";
+                btnDashboard.className = "flex-1 md:flex-initial flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all text-slate-400 hover:text-slate-200";
+            }
+        }
+
+        // PREVIEW INPUT GAMBAR LOCAL
+        function previewImage(event) {
+            const input = event.target;
+            const reader = new FileReader();
+            reader.onload = function(){
+                const output = document.getElementById('image-preview');
+                const wrapper = document.getElementById('wrapper-preview');
+                output.src = reader.result;
+                wrapper.classList.remove('hidden');
+            };
+            if(input.files[0]) {
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        // WARNA DINAMIS BADGE
+        function applyDynamicColors(statusText) {
+            const badge = document.getElementById('status-badge');
+            if(!badge) return;
+            badge.className = "text-base font-bold uppercase tracking-wide flex items-center gap-2.5 transition-all duration-300 ";
+            const cleanText = statusText.toLowerCase();
+            
+            if (cleanText.includes('matang') && !cleanText.includes('setengah')) {
+                badge.classList.add('text-pink-400');
+                badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-pink-500 shadow-[0_0_10px_#f43f5e] animate-pulse"></span> <i class="fa-solid fa-square-check text-pink-500"></i> ${statusText}`;
+            } else if (cleanText.includes('mentah')) {
+                badge.classList.add('text-emerald-400');
+                badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_10px_#10b981] animate-pulse"></span> <i class="fa-solid fa-leaf text-emerald-500"></i> ${statusText}`;
+            } else if (cleanText.includes('setengah')) {
+                badge.classList.add('text-amber-400');
+                badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-amber-500 shadow-[0_0_10px_#f59e0b] animate-pulse"></span> <i class="fa-solid fa-triangle-exclamation text-amber-500"></i> ${statusText}`;
+            } else if (cleanText.includes('bukan') || cleanText.includes('asing')) {
+                badge.classList.add('text-rose-500');
+                badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-rose-600 shadow-[0_0_12px_#e11d48] animate-pulse"></span> <i class="fa-solid fa-circle-xmark text-rose-500"></i> ${statusText}`;
+            } else {
+                badge.classList.add('text-slate-300');
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", function() {
+            const initialStatus = "{{ status|default:'' }}";
+            if(initialStatus) applyDynamicColors(initialStatus);
+        });
+
+        // SINKRONISASI REAL-TIME JIKA MODE KAMERA AKTIF
+        {% if pake_kamera %}
+        setInterval(function() {
+            fetch('/get-status-api/')
+                .then(response => response.json())
+                .then(data => {
+                    const statusTxtElement = document.getElementById('txt-status');
+                    const deskripsiTxtElement = document.getElementById('txt-deskripsi');
+                    if(data.status) {
+                        applyDynamicColors(data.status);
+                        deskripsiTxtElement.innerText = data.deskripsi;
+                    }
+                })
+                .catch(error => console.error('Data Sinkronisasi Terputus:', error));
+        }, 800);
+        {% endif %}
+    </script>
+</body>
+</html>
+
+```
