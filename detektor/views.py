@@ -1,6 +1,7 @@
 from django.shortcuts import render
 from django.http import StreamingHttpResponse, JsonResponse
 from django.core.files.storage import FileSystemStorage
+from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from ultralytics import YOLO
 from .models import RiwayatDeteksi
 
@@ -221,34 +222,9 @@ def index(request):
                 confidence
             )
 
-            RiwayatDeteksi.objects.create(
-                status=status,
-                deskripsi=deskripsi,
-                image_path=f"/media/predicted/{nama_file}"
-            )
-            # ... baris kode analisis YOLO Anda di atas ...
-            status, deskripsi = parsing_hasil_model(
-                nama_kelas,
-                potongan,
-                confidence
-            )
-
-            # SIMPAN LANGSUNG KE DATA BASE DI SINI
             url_prediksi = f"/media/predicted/{nama_file}"
-            RiwayatDeteksi.objects.create(
-                status=status,
-                deskripsi=deskripsi,
-                image_path=url_prediksi  # Pastikan field ini sesuai dengan pemanggilan di riwayat.html
-            )
-
             konteks.update({
                 'url_gambar': url_prediksi,
-                'status': status,
-                'deskripsi': deskripsi
-            })
-
-            konteks.update({
-                'url_gambar': f"/media/predicted/{nama_file}",
                 'status': status,
                 'deskripsi': deskripsi
             })
@@ -261,6 +237,29 @@ def index(request):
                 'deskripsi': 'Objek tidak terdeteksi.'
             })
 
+    status_filter = request.GET.get('status')
+    riwayat_list = RiwayatDeteksi.objects.all().order_by('-id')
+
+    if status_filter == 'matang':
+        riwayat_list = riwayat_list.filter(status='Buah Naga Matang')
+    elif status_filter == 'setengah':
+        riwayat_list = riwayat_list.filter(status='Buah Naga Setengah Matang')
+    elif status_filter == 'mentah':
+        riwayat_list = riwayat_list.filter(status='Buah Naga Mentah')
+
+    paginator = Paginator(riwayat_list, 10)  # Batas 10 data per halaman
+    page = request.GET.get('page')
+    try:
+        riwayat_page = paginator.page(page)
+    except PageNotAnInteger:
+        riwayat_page = paginator.page(1)
+    except EmptyPage:
+        riwayat_page = paginator.page(paginator.num_pages)
+
+    konteks.update({
+        'riwayat': riwayat_page,
+        'status_filter': status_filter
+    })
     return render(
         request,
         'detektor/index.html',
@@ -268,7 +267,7 @@ def index(request):
     )
 
 # ==============================================================================
-# PROSES SIMPAN RIWAYAT (TAMBAHKAN FUNGSI INI)
+# PROSES SIMPAN RIWAYAT
 # ==============================================================================
 
 def simpan_riwayat(request):
@@ -277,7 +276,6 @@ def simpan_riwayat(request):
         deskripsi = request.POST.get('deskripsi')
         url_gambar = request.POST.get('url_gambar')
         
-        # Menyimpan data yang dikirim dari form ke database
         if status and deskripsi:
             RiwayatDeteksi.objects.create(
                 status=status,
@@ -285,38 +283,20 @@ def simpan_riwayat(request):
                 image_path=url_gambar
             )
             
-    # Setelah berhasil menyimpan, redirect kembali ke halaman utama
     from django.shortcuts import redirect
-    return redirect('index')
+    return redirect('/?tab=history')
 
-
-# ==============================================================================
-# HALAMAN RIWAYAT (SESUAIKAN NAMA FUNGSI)
-# ==============================================================================
-
-def riwayat_deteksi(request): # <- Ubah nama fungsi ini agar serasi dengan {% url 'riwayat_deteksi' %}
-    riwayat = RiwayatDeteksi.objects.all().order_by('-id')
-    return render(
-        request,
-        'detektor/riwayat.html',
-        {
-            'riwayat': riwayat
-        }
-    )
 
 # ==============================================================================
 # HALAMAN RIWAYAT
 # ==============================================================================
 
+def riwayat_deteksi(request):
+    from django.shortcuts import redirect
+    return redirect('/?tab=history')
+
 def halaman_riwayat(request):
+    from django.shortcuts import redirect
+    return redirect('/?tab=history')
 
-    riwayat = RiwayatDeteksi.objects.all().order_by('-id')
-
-    return render(
-        request,
-        'detektor/riwayat.html',
-        {
-            'riwayat': riwayat
-        }
-    )
     
