@@ -82,12 +82,12 @@
                 </div>
                 
                 <div class="flex items-center gap-2 bg-slate-950/80 p-1.5 rounded-xl border border-slate-800 w-full md:w-auto">
-                    <button onclick="switchTab('dashboard')" id="btn-tab-dashboard" class="flex-1 md:flex-initial flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all bg-gradient-to-r from-pink-500 to-rose-600 text-white shadow-md">
+                    <a href="/" id="btn-tab-dashboard" class="flex-1 md:flex-initial flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all bg-gradient-to-r from-pink-500 to-rose-600 text-white shadow-md">
                         <i class="fa-solid fa-gauge-high"></i> Dasbor Utama
-                    </button>
-                    <button onclick="switchTab('history')" id="btn-tab-history" class="flex-1 md:flex-initial flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all text-slate-400 hover:text-slate-200">
+                    </a>
+                    <a href="?tab=history" id="btn-tab-history" class="flex-1 md:flex-initial flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all text-slate-400 hover:text-slate-200">
                         <i class="fa-solid fa-clock-rotate-left"></i> Riwayat Diagnostik
-                    </button>
+                    </a>
                 </div>
             </div>
         </header>
@@ -169,7 +169,11 @@
                                     <div class="scanline"></div>
                                 </div>
                             {% elif pake_kamera %}
-                                <div class="text-center p-6 space-y-2">
+                                <div id="live-inferensi-wrapper" class="relative w-full h-full p-0.5 hidden">
+                                    <img id="live-inferensi-img" src="" class="max-h-60 mx-auto rounded-lg object-contain shadow-2xl" alt="Hasil Klasifikasi Kamera">
+                                    <div class="scanline"></div>
+                                </div>
+                                <div id="live-idle-wrapper" class="text-center p-6 space-y-2">
                                     <div class="w-10 h-10 bg-emerald-500/10 rounded-xl flex items-center justify-center mx-auto text-emerald-400 border border-emerald-500/20 animate-pulse">
                                         <i class="fa-solid fa-satellite-dish text-sm"></i>
                                     </div>
@@ -484,9 +488,25 @@
                 .then(data => {
                     const statusTxtElement = document.getElementById('txt-status');
                     const deskripsiTxtElement = document.getElementById('txt-deskripsi');
+                    const liveImgElement = document.getElementById('live-inferensi-img');
+                    const liveWrapper = document.getElementById('live-inferensi-wrapper');
+                    const idleWrapper = document.getElementById('live-idle-wrapper');
+
                     if(data.status) {
                         applyDynamicColors(data.status);
                         deskripsiTxtElement.innerText = data.deskripsi;
+
+                        const cleanStatus = data.status.toLowerCase();
+                        const isFruitDetected = cleanStatus.includes('matang') || cleanStatus.includes('mentah') || cleanStatus.includes('setengah');
+                        
+                        if (isFruitDetected && data.image_url) {
+                            if (liveImgElement) liveImgElement.src = data.image_url;
+                            if (liveWrapper) liveWrapper.classList.remove('hidden');
+                            if (idleWrapper) idleWrapper.classList.add('hidden');
+                        } else {
+                            if (liveWrapper) liveWrapper.classList.add('hidden');
+                            if (idleWrapper) idleWrapper.classList.remove('hidden');
+                        }
                     }
                 })
                 .catch(error => console.error('Data Sinkronisasi Terputus:', error));

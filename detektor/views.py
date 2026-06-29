@@ -8,6 +8,7 @@ from .models import RiwayatDeteksi
 import os
 import cv2
 import numpy as np
+import time
 
 
 
@@ -27,6 +28,9 @@ except Exception as e:
 
 last_status = "Menunggu Objek..."
 last_deskripsi = "Posisikan buah naga di depan kamera."
+last_image_url = None
+last_saved_status = None
+last_saved_time = 0.0
 
 
 # ==============================================================================
@@ -87,7 +91,7 @@ def parsing_hasil_model(nama_kelas, potongan_buah, confidence):
 # ==============================================================================
 
 def gen_frames():
-    global last_status, last_deskripsi
+    global last_status, last_deskripsi, last_image_url, last_saved_status, last_saved_time
 
     camera = cv2.VideoCapture(0)
 
@@ -118,17 +122,50 @@ def gen_frames():
 
                 potongan_buah = frame[y1:y2, x1:x2]
 
-                last_status, last_deskripsi = parsing_hasil_model(
+                status, deskripsi = parsing_hasil_model(
                     nama_kelas,
                     potongan_buah,
                     confidence
                 )
 
+                last_status = status
+                last_deskripsi = deskripsi
+
                 frame = result.plot()
+
+                # Simpan otomatis ke database jika terdeteksi buah naga dengan cooldown
+                valid_statuses = ["Buah Naga Matang", "Buah Naga Setengah Matang", "Buah Naga Mentah"]
+                if status in valid_statuses:
+                    current_time = time.time()
+                    if status != last_saved_status or (current_time - last_saved_time) > 5.0:
+                        filename = f"live_{int(current_time)}.jpg"
+                        output_dir = os.path.join(BASE_DIR, 'media', 'predicted')
+                        os.makedirs(output_dir, exist_ok=True)
+                        output_path = os.path.join(output_dir, filename)
+
+                        cv2.imwrite(output_path, frame)
+
+                        url_prediksi = f"/media/predicted/{filename}"
+                        last_image_url = url_prediksi
+
+                        try:
+                            RiwayatDeteksi.objects.create(
+                                status=status,
+                                deskripsi=deskripsi,
+                                image_path=url_prediksi
+                            )
+                            print(f"Berhasil menyimpan riwayat deteksi kamera: {status}")
+                        except Exception as e:
+                            print(f"Gagal menyimpan riwayat live cam ke database: {e}")
+
+                        last_saved_status = status
+                        last_saved_time = current_time
 
             else:
                 last_status = "Bukan Buah Naga"
                 last_deskripsi = "Objek tidak dikenali."
+                # Reset status simpan agar deteksi berikutnya langsung tersimpan
+                last_saved_status = None
 
         ret, buffer = cv2.imencode('.jpg', frame)
 
@@ -152,7 +189,8 @@ def video_feed(request):
 def get_status_api(request):
     return JsonResponse({
         'status': last_status,
-        'deskripsi': last_deskripsi
+        'deskripsi': last_deskripsi,
+        'image_url': last_image_url
     })
 
 
